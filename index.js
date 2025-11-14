@@ -5,19 +5,22 @@ const app = express();
 app.use(express.json());
 
 // ================================
-// 🔐 METS ICI TON TOKEN TELEGRAM
+// 🔐 TON TOKEN TELEGRAM
 // ================================
 const TOKEN = "8531990370:AAFjmiOk5Fr8KGOWPpXqkLU1Ghm032hKaiU";
 const TELEGRAM_API = `https://api.telegram.org/bot${TOKEN}`;
-const WEBHOOK_URL = "A_REMPLACER_PAR_TON_WEBHOOK_RENDER";
+const WEBHOOK_URL = process.env.WEBHOOK_URL;
 
 // ================================
-// 📌 SETUP WEBHOOK
+// 📌 Route test
 // ================================
 app.get("/", (req, res) => {
-    res.send("Bot is running!");
+    res.send("Bot is running on Render!");
 });
 
+// ================================
+// 📌 Webhook Telegram
+// ================================
 app.post("/webhook", async (req, res) => {
     const message = req.body.message;
 
@@ -51,4 +54,16 @@ async function sendMessage(chatId, text) {
 // 🚀 START SERVER
 // ================================
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log("Bot server running on port " + PORT));
+app.listen(PORT, async () => {
+    console.log("Bot server running on port " + PORT);
+
+    // Set Telegram webhook automatically at startup
+    try {
+        await axios.get(
+            `${TELEGRAM_API}/setWebhook?url=${WEBHOOK_URL}`
+        );
+        console.log("Webhook registered:", WEBHOOK_URL);
+    } catch (error) {
+        console.error("Webhook error:", error.response?.data || error.message);
+    }
+});
